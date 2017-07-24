@@ -19,13 +19,22 @@
     margin: $spacing * 2 auto;
     margin-bottom: 0;
     border-radius: 8px;
+
+    @include tablet {
+      margin: $spacing;
+      margin-bottom: 0;
+    }
   }
 
   &:last-child > div {
     margin-bottom: $spacing * 2;
+
+    @include tablet {
+      margin-bottom: $spacing;
+    }
   }
 
-  .fa-times {
+  .icon-times {
     position: absolute;
     top: 0;
     right: 0;

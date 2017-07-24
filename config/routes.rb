@@ -17,10 +17,14 @@ Rails.application.routes.draw do
   get '/contribute/styleguide', to: 'static#styleguide'
   get '/contribute/write-the-docs', to: 'static#write_the_docs'
 
+  get '/legacy', to: 'static#legacy'
+
+  get '/community/slack', to: 'slack#join'
+  post '/community/slack', to: 'slack#invite'
+
   get '/tools', to: 'static#tools'
   get '/community', to: 'static#community'
   get '/community/past-events', to: 'static#past_events'
-
 
   match '/search', to: 'search#results', via: [:get, :post]
   match '/quicksearch', to: 'search#quicksearch', via: [:get, :post]

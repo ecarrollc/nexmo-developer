@@ -3,6 +3,12 @@ title: API reference
 description: Voice API reference
 api: Voice API
 ---
+<!-- 
+Note for editors:
+
+If you add/move/rename sections (etc.), be sure to update the sidebar:
+app/views/layouts/partials/api/_voice.html.erb
+-->
 
 # API reference
 
@@ -13,10 +19,6 @@ You use the following requests to create, terminate, record and retrieve informa
 ###  Create an outbound call
 
 [POST] `https://api.nexmo.com/v1/calls`
-
-```tabbed_examples
-source: '/_examples/api/voice/calls/post'
-```
 
 This request contains:
 
@@ -79,7 +81,7 @@ Key | Value
 `uuid` | The unique identifier for this call leg. The uuid is created when your call request is accepted by Nexmo. You use uuid in all requests for individual live calls. @[Possible values](/_modals/voice/api/calls/uuid.md).
 `conversation_uuid` | The unique identifier for the conversation this call leg is part of.
 `direction` | Possible values are `outbound` or `inbound`.
-`status` | The status of the call. @[Possible values](/_modals/voice/api/calls/status.md).
+`status` | The status of the call. [Possible values](#status-values).
 
 #### Webhook
 
@@ -103,7 +105,7 @@ Key | Value
 `recording_url` | The URL to download a call or conversation recording from.
 `start_time` | The time the call started in the following format: `YYYY-MM-DD HH:MM:SS`. For example, `2020-01-01 12:00:00`.
 `network` | The [Mobile Country Code Mobile Network Code (MCCMNC)](https://en.wikipedia.org/wiki/Mobile_country_code) for the carrier network used to make this call.
-`status` | The status of the call. @[Possible values](/_modals/voice/api/calls/status.md).
+`status` | The status of the call. [Possible values](#status-values).
 `rate` | The price per minute for this call. This is only sent if `status` is `completed`.
 `price` | The total price charged for this call. This is only sent if `status` is `completed`.
 `duration` | The time elapsed for the call to take place in seconds. This is only sent if `status` is `completed`.
@@ -114,11 +116,6 @@ Key | Value
 [GET] `https://api.nexmo.com/v1/calls`
 
 You use a [GET] request to retrieve the details about all your calls.
-
-```tabbed_examples
-source: '/_examples/api/voice/calls/get'
-```
-
 
 This request contains:
 
@@ -140,7 +137,7 @@ The following table shows the parameters you use to filter the information you r
 
 Parameter | Description | Required
 -- | -- | --
-`status` | Filter on the status of this call. @[Possible values](/_modals/voice/api/calls/status.md) | No
+`status` | Filter on the status of this call. [Possible values](#status-values) | No
 `date_start` | Return the records that occurred after this point in time. Set this parameter in ISO_8601 format: `YYYY-MM-DDTHH:MM:SSZ`. For example, `2016-11-14T07:45:14Z`. | No
 `date_end` | Return the records that occurred before this point in time. Set this parameter in ISO_8601 format. | No
 `page_size` | Return this amount of records in the response. The default value is 10. | No
@@ -210,7 +207,7 @@ Key | Value
 `conversation_uuid` | The unique identifier for the conversation this call leg is part of.
 `to` | The single or mixed collection of endpoint types you connected to. @[Possible values](/_modals/voice/guides/ncco-reference/endpoint.md).
 `from` | The endpoint you are calling from. Possible value are the same as *to*.
-`status` | Filter on the status of this call. @[Possible values](/_modals/voice/api/calls/status.md)
+`status` | Filter on the status of this call. [Possible values](#status-values).
 `direction` | Possible values are `outbound` or `inbound`.
 `rate` | The price per minute for this call.
 `price` | The total price charged for this call.
@@ -224,10 +221,6 @@ Key | Value
 [GET] `https://api.nexmo.com/v1/calls/{uuid}`
 
 You use a GET request to retrieve information about a single call.
-
-```tabbed_examples
-source: '/_examples/api/voice/calls/show'
-```
 
 This request contains:
 
@@ -264,7 +257,7 @@ Key | Value
 `conversation_uuid` | The unique identifier for the conversation this call leg is part of.
 `to` | The single or mixed collection of endpoint types you connected to. @[Possible values](/_modals/voice/guides/ncco-reference/endpoint.md).
 `from` | The endpoint you are calling from. Possible value are the same as *to*.
-`status` | Filter on the status of this call. @[Possible values](/_modals/voice/api/calls/status.md)
+`status` | Filter on the status of this call. [Possible values](#status-values)
 `direction` | Possible values are `outbound` or `inbound`.
 `rate` | The price per minute for this call.
 `price` | The total price charged for this call.
@@ -277,46 +270,48 @@ Key | Value
 
 [PUT] `https://api.nexmo.com/v1/calls/{uuid}`
 
-You use a [PUT] request to modify an existing call.
+You can use a [PUT] request to modify an existing call. You can use this to terminate a call, mute or unmute a call, "earmuff" a call (which suspends audio to one call) or "unearmuff" it, and to transfer the call to a different NCCO.
 
-```tabbed_examples
-source: '/_examples/api/voice/calls/update'
-```
-
-This request contains:
-
-* A [Base URL](#cmsbase)
-* [Payload](#cmsparameters )
-* [JWT](#jwt_minting)
-
-You receive details about the all in the [response](#cmsresponse).
+These requests must be authenticated using a [JSON Web Token (JWT)](#jwt_minting).
 
 #### Base URL
+
 All requests to modify an existing call must contain:
 
 * `https://api.nexmo.com/v1/calls/{uuid}`
 
-#### Payload
+#### Payload 
 
-The payload to modify a call looks like.
-
-**Hangup**
-
-```json
-{
-  "action": "hangup"
-}
-```
+The request body is a JSON-encoded object. The request body's content depends on the `action` performed.
 
 The following table shows the parameters you use to modify a call:
 
 Parameter | Description | Required
 -- | -- | --
-`action` | Possible values are `hangup` | Yes
+`action` | Possible values are described below. | Yes
+`destination` | A JSON object pointing to a replacement NCCO, when `action` is `transfer`. | No
+
+Possible values for `action` are:
+
+Action value | Description
+-------------| -----------
+`hangup`     | Terminates this call leg.
+`mute`       | Mutes this call leg.
+`unmute`     | Unmutes this call leg.
+`earmuff`    | Prevents the recipient of this call leg from hearing other parts of the conversation.
+`unearmuff`  | Removes the earmuff effect from this call leg.
+`transfer`   | Transfers this call leg to another NCCO, as specified by the `destination` parameter.
+
+For every action parameter except `transfer`, no further keys are required in the JSON document. For `transfer`, a `destination` key containing a JSON object must be provided. Examples for these are given below.
+
+```tabbed_content
+source: '_examples/api/voice/calls/put-request'
+```
+
 
 #### Response
 
-The JSON response looks like:
+The JSON response contains current details of the call. An example is provided below.
 
 ```json
 {
@@ -335,7 +330,7 @@ The JSON response looks like:
     "type": "phone",
     "number": "447700900001"
   },
-  "status": "complete",
+  "status": "completed",
   "direction": "outbound",
   "rate": "0.39",
   "price": "23.40",
@@ -354,7 +349,7 @@ Key | Value
 `conversation_uuid` | The unique identifier for the conversation this call leg is part of.
 `to` | The single or mixed collection of endpoint types you connected to. @[Possible values](/_modals/voice/guides/ncco-reference/endpoint.md).
 `from` | The endpoint you are calling from. Possible value are the same as *to*.
-`status` | Filter on the status of this call. @[Possible values](/_modals/voice/api/calls/status.md)
+`status` | Filter on the status of this call. [Possible values](#status-values)
 `direction` | Possible values are `outbound` or `inbound`.
 `rate` | The price per minute for this call.
 `price` | The total price charged for this call.
@@ -373,10 +368,6 @@ You use the following requests to start and stop streaming audio to an active ca
 [PUT] `https://api.nexmo.com/v1/calls/{uuid}/stream`
 
 You use a PUT request to stream an audio file to an active call.
-
-```tabbed_examples
-source: '/_examples/api/voice/calls/streams/update'
-```
 
 This request contains:
 
@@ -426,10 +417,6 @@ Key | Value
 
 You use a [DELETE] request to stop streaming audio to an active call.
 
-```tabbed_examples
-source: '/_examples/api/voice/calls/streams/destroy'
-```
-
 This request contains:
 
 * A [Base URL](#csdbase)
@@ -477,10 +464,6 @@ You use the following requests to start and stop synthesized audio messages in a
 [PUT] `https://api.nexmo.com/v1/calls/{uuid}/talk`
 
 You use a PUT request to send a synthesized speech message to an active call.
-
-```tabbed_examples
-source: '/_examples/api/voice/calls/talk/update'
-```
 
 This request contains:
 
@@ -531,10 +514,6 @@ Key | Value
 
 You use a DELETE request to stop send synthesized audio to an active call.
 
-```tabbed_examples
-source: '/_examples/api/voice/calls/talk/destroy'
-```
-
 This request contains:
 
 * A [Base URL](#ctdbase)
@@ -582,10 +561,6 @@ You can use the following requests to use DTMF tones in your calls.
 [PUT] `https://api.nexmo.com/v1/calls/{uuid}/dtmf`
 
 You use a PUT request to send DTMF tones to an active call.
-
-```tabbed_examples
-source: '/_examples/api/voice/calls/dtmf/update'
-```
 
 This request contains:
 
@@ -655,13 +630,29 @@ A JWT consists of a header, a payload and a signature in the structure xxxxx.yyy
 
 The following code examples show how to generate a JWT token:
 
-```tabbed_examples
-source: '/_examples/api/voice/jwt/'
-```
-
 When you use JWTs for authentication, you must still follow [Security](#security) and [Encoding](#encode).
 
-# Errors
+## `status` values
+
+The table below lists the possible values for the status of a call as returned by a number of Voice API endpoints.
+
+Value | Description
+-- | --
+`started` | Platform has stared the call.
+`ringing` | The user's handset is ringing.
+`answered` | The user has answered your call.
+`machine` | Platform detected an answering machine.
+`completed` | Platform has terminated this call.
+`timeout` | Your user did not answer your call within `ringing_timer` seconds.
+`failed` | The call failed to complete
+`rejected` | The call was rejected
+`unanswered` | The call was not answered
+`busy` | The number being dialled was on another call
+
+When a Call enters a state of `timeout`, `failed`, `rejected`, `unanswered` or `busy` the `event_url` webhook endpoint can optionally return an NCCO to override the current NCCO. See [Connect with fallback NCCO](/voice/guides/ncco-reference#connect_fallback).
+
+
+## Errors
 
 The following HTTP codes are supported:
 

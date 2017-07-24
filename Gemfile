@@ -10,8 +10,6 @@ end
 gem 'rails', '~> 5.1.0.rc1'
 gem 'webpacker', github: 'rails/webpacker'
 
-gem 'actionpack-action_caching'
-
 # Use postgresql as the database for Active Record
 gem 'pg', '~> 0.18'
 # Use Puma as the app server
@@ -73,6 +71,12 @@ gem 'colorize'
 
 # A simple Ruby client for the algolia.com REST API
 gem 'algoliasearch'
+
+# A simple HTTP and REST client for Ruby, inspired by the Sinatra microframework style of specifying actions: get, put, post, delete.
+gem 'rest-client'
+
+# Helpers for the reCAPTCHA API
+gem 'recaptcha', require: "recaptcha/rails"
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
